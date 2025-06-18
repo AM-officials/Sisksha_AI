@@ -1,0 +1,1999 @@
+1. All Tables in Public Schema:
+[
+  {
+    "tablename": "achievements"
+  },
+  {
+    "tablename": "profiles"
+  },
+  {
+    "tablename": "user_achievements"
+  },
+  {
+    "tablename": "streak_logs"
+  },
+  {
+    "tablename": "missed_streak_days"
+  },
+  {
+    "tablename": "students"
+  },
+  {
+    "tablename": "flashcards"
+  },
+  {
+    "tablename": "quests"
+  },
+  {
+    "tablename": "user_quests"
+  },
+  {
+    "tablename": "quiz_questions"
+  },
+  {
+    "tablename": "usage_stats"
+  },
+  {
+    "tablename": "daily_stats"
+  },
+  {
+    "tablename": "syllabi"
+  },
+  {
+    "tablename": "syllabus_topics"
+  },
+  {
+    "tablename": "quiz_attempts"
+  },
+  {
+    "tablename": "study_sessions"
+  },
+  {
+    "tablename": "user_daily_generation_counts"
+  },
+  {
+    "tablename": "schools"
+  },
+  {
+    "tablename": "teachers"
+  },
+  {
+    "tablename": "notes"
+  },
+  {
+    "tablename": "class_sessions"
+  },
+  {
+    "tablename": "storage_usage"
+  },
+  {
+    "tablename": "announcements"
+  },
+  {
+    "tablename": "school_settings"
+  },
+  {
+    "tablename": "demo_requests"
+  },
+  {
+    "tablename": "submissions"
+  },
+  {
+    "tablename": "settings"
+  },
+  {
+    "tablename": "quiz_scores"
+  },
+  {
+    "tablename": "transactions"
+  },
+  {
+    "tablename": "classrooms"
+  },
+  {
+    "tablename": "quizzes"
+  },
+  {
+    "tablename": "sessions"
+  },
+  {
+    "tablename": "student_xp"
+  },
+  {
+    "tablename": "quiz_submissions"
+  },
+  {
+    "tablename": "topics"
+  },
+  {
+    "tablename": "materials"
+  },
+  {
+    "tablename": "messages"
+  }
+]
+
+2. all tables in the auth schema
+[
+  {
+    "tablename": "sso_providers"
+  },
+  {
+    "tablename": "sso_domains"
+  },
+  {
+    "tablename": "saml_providers"
+  },
+  {
+    "tablename": "schema_migrations"
+  },
+  {
+    "tablename": "instances"
+  },
+  {
+    "tablename": "users"
+  },
+  {
+    "tablename": "audit_log_entries"
+  },
+  {
+    "tablename": "saml_relay_states"
+  },
+  {
+    "tablename": "refresh_tokens"
+  },
+  {
+    "tablename": "sessions"
+  },
+  {
+    "tablename": "mfa_amr_claims"
+  },
+  {
+    "tablename": "flow_state"
+  },
+  {
+    "tablename": "identities"
+  },
+  {
+    "tablename": "one_time_tokens"
+  },
+  {
+    "tablename": "mfa_factors"
+  },
+  {
+    "tablename": "mfa_challenges"
+  }
+]
+
+3. Table structure
+<find it yourself>
+
+4. All RLS 
+<find yourself>
+
+5. All RLS across all tables
+[
+  {
+    "schemaname": "public",
+    "tablename": "achievements",
+    "policyname": "Anyone can view achievements",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "profiles",
+    "policyname": "Public profiles read access for leaderboards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "profiles",
+    "policyname": "Users can update their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "profiles",
+    "policyname": "Users can view their own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "user_achievements",
+    "policyname": "Public user achievements read access for leaderboards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "user_achievements",
+    "policyname": "Users can view their own achievements",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "streak_logs",
+    "policyname": "Enable insert for authenticated users only",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((auth.uid() = user_id) AND ((login_date = CURRENT_DATE) OR (login_date = (CURRENT_DATE - '1 day'::interval)) OR (EXISTS ( SELECT 1\n   FROM missed_streak_days\n  WHERE ((missed_streak_days.user_id = auth.uid()) AND (missed_streak_days.missed_date = streak_logs.login_date))))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "streak_logs",
+    "policyname": "Public streak logs read access for leaderboards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "streak_logs",
+    "policyname": "Users can insert their own streak logs",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((auth.uid() = user_id) AND ((login_date = CURRENT_DATE) OR (login_date = (CURRENT_DATE - '1 day'::interval)) OR (EXISTS ( SELECT 1\n   FROM missed_streak_days\n  WHERE ((missed_streak_days.user_id = auth.uid()) AND (missed_streak_days.missed_date = streak_logs.login_date))))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "streak_logs",
+    "policyname": "Users can view their own streak logs",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "missed_streak_days",
+    "policyname": "Users can insert their missed days",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((auth.uid() = user_id) AND (missed_date = (CURRENT_DATE - '1 day'::interval)))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "missed_streak_days",
+    "policyname": "Users can read their missed days",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "missed_streak_days",
+    "policyname": "Users can update their missed days",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "School access to students",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((school_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can delete their own row",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can update their own row",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can view their own row",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Teachers can view students in their classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM classrooms c\n  WHERE (((c.teachers @> ARRAY[(auth.uid())::text]) OR ((c.class_teacher_id)::text = (auth.uid())::text)) AND (c.id = students.classroom_id))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "flashcards",
+    "policyname": "Users can create flashcards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "flashcards",
+    "policyname": "Users can delete flashcards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "flashcards",
+    "policyname": "Users can update flashcards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "flashcards",
+    "policyname": "Users can view all flashcards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "user_quests",
+    "policyname": "Users can only access their own quest data",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_questions",
+    "policyname": "Users can create quiz questions",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_questions",
+    "policyname": "Users can delete quiz questions",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_questions",
+    "policyname": "Users can update quiz questions",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_questions",
+    "policyname": "Users can view all quiz questions",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "usage_stats",
+    "policyname": "Public usage stats read access for leaderboards",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "usage_stats",
+    "policyname": "Users can only access their own usage stats",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "ALL",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "daily_stats",
+    "policyname": "Users can insert their own stats",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "daily_stats",
+    "policyname": "Users can update their own stats",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "daily_stats",
+    "policyname": "Users can view their own stats",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabi",
+    "policyname": "Users can delete their own syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabi",
+    "policyname": "Users can insert their own syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabi",
+    "policyname": "Users can update their own syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabi",
+    "policyname": "Users can view their own syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabus_topics",
+    "policyname": "Users can delete topics of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = syllabus_topics.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabus_topics",
+    "policyname": "Users can insert topics to their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = syllabus_topics.syllabus_id) AND (syllabi.user_id = auth.uid()))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabus_topics",
+    "policyname": "Users can update topics of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = syllabus_topics.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "syllabus_topics",
+    "policyname": "Users can view topics of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = syllabus_topics.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "schools",
+    "policyname": "School can select own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "schools",
+    "policyname": "School can update own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "schools",
+    "policyname": "Superadmin can do everything on schools",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "is_superadmin()",
+    "with_check": "is_superadmin()"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "schools",
+    "policyname": "Teachers can view their school",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "teachers",
+    "policyname": "School access to teachers",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((school_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "teachers",
+    "policyname": "Teachers can view own profile",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notes",
+    "policyname": "Users can delete notes of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = notes.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notes",
+    "policyname": "Users can insert notes to their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = notes.syllabus_id) AND (syllabi.user_id = auth.uid()))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notes",
+    "policyname": "Users can update notes of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = notes.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "notes",
+    "policyname": "Users can view notes of their syllabi",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM syllabi\n  WHERE ((syllabi.id = notes.syllabus_id) AND (syllabi.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "class_sessions",
+    "policyname": "School can select their class sessions",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(classroom_id IN ( SELECT classrooms.id\n   FROM classrooms\n  WHERE (classrooms.school_id = ANY (get_user_schools(auth.uid())))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "class_sessions",
+    "policyname": "Teacher can select their class sessions",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "storage_usage",
+    "policyname": "School can select their storage usage",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(school_id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "announcements",
+    "policyname": "School can delete their announcements",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "(school_id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "announcements",
+    "policyname": "School can insert their announcements",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(school_id = ANY (get_user_schools(auth.uid())))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "announcements",
+    "policyname": "School can select their announcements",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(school_id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "announcements",
+    "policyname": "School can update their announcements",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(school_id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "announcements",
+    "policyname": "Student can select school announcements",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(school_id IN ( SELECT students.school_id\n   FROM students\n  WHERE (students.id = auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_scores",
+    "policyname": "Student can select own quiz scores",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(student_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_scores",
+    "policyname": "Teacher can select scores for their quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(quiz_id IN ( SELECT quizzes.id\n   FROM quizzes\n  WHERE (quizzes.teacher_id = auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "transactions",
+    "policyname": "School can select their transactions",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(school_id = ANY (get_user_schools(auth.uid())))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "classrooms",
+    "policyname": "School access to classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((school_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "classrooms",
+    "policyname": "Schools can manage their classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(((auth.jwt() ->> 'role'::text) = 'school'::text) AND (school_id = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "classrooms",
+    "policyname": "Teachers can view their classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "true",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "School can select quizzes for their classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((classroom_id IS NULL) OR (classroom_id IN ( SELECT classrooms.id\n   FROM classrooms\n  WHERE (classrooms.school_id = ANY (get_user_schools(auth.uid()))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Student can select assigned quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((assigned_to ?| ARRAY[(auth.uid())::text]) OR (classroom_id IN ( SELECT students.classroom_id\n   FROM students\n  WHERE (students.id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Students can view assigned quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(((auth.jwt() ->> 'role'::text) = 'student'::text) AND (EXISTS ( SELECT 1\n   FROM students s\n  WHERE ((s.id = auth.uid()) AND (s.classroom_id = quizzes.classroom_id)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Teacher can delete own quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Teacher can insert own quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(teacher_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Teacher can select own quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quizzes",
+    "policyname": "Teacher can update own quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_submissions",
+    "policyname": "Schools can view all submissions",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM ((schools s\n     JOIN classrooms c ON ((c.school_id = s.id)))\n     JOIN students st ON ((st.classroom_id = c.id)))\n  WHERE ((s.id = auth.uid()) AND (st.id = quiz_submissions.student_id))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_submissions",
+    "policyname": "Students can manage their quiz submissions",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(auth.uid() = student_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "quiz_submissions",
+    "policyname": "Teachers can view and grade submissions for their quizzes",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(EXISTS ( SELECT 1\n   FROM (quizzes q\n     JOIN teachers t ON ((q.teacher_id = t.id)))\n  WHERE ((q.id = quiz_submissions.quiz_id) AND (t.id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "topics",
+    "policyname": "Students can view topics",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(((auth.jwt() ->> 'role'::text) = 'student'::text) AND (EXISTS ( SELECT 1\n   FROM (students s\n     JOIN materials m ON ((m.classroom_id = s.classroom_id)))\n  WHERE ((s.id = auth.uid()) AND (m.topic = topics.id)))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "topics",
+    "policyname": "Teachers can manage their topics",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "(((auth.jwt() ->> 'role'::text) = 'teacher'::text) AND (teacher_id = auth.uid()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "School can select materials for their classrooms",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((classroom_id IS NULL) OR (classroom_id IN ( SELECT classrooms.id\n   FROM classrooms\n  WHERE (classrooms.school_id = ANY (get_user_schools(auth.uid()))))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Student can select assigned materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((assigned_to ?| ARRAY[(auth.uid())::text]) OR (classroom_id IN ( SELECT students.classroom_id\n   FROM students\n  WHERE (students.id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Students can view classroom materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM students\n  WHERE (((students.id)::text = (auth.uid())::text) AND (students.classroom_id = materials.classroom_id))))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teacher can delete own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teacher can insert own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(teacher_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teacher can select own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teacher can update own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teachers can delete their own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teachers can insert materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(teacher_id = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teachers can modify their own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "((teacher_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teachers can update their own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(teacher_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "materials",
+    "policyname": "Teachers can view their own materials",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "((teacher_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Allow insert messages for authenticated users",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Allow users to delete their own messages",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "((sender_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Allow users to update their own messages",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "((sender_id)::text = (auth.uid())::text)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "messages",
+    "policyname": "Allow users to view their own messages",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(((sender_id)::text = (auth.uid())::text) OR ((receiver_id)::text = (auth.uid())::text))",
+    "with_check": null
+  }
+]
+
+6.all database functions
+[
+  {
+    "function_name": "set_current_timestamp_updated_at",
+    "function_definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "calculate_level",
+    "function_definition": "\nDECLARE\n  level INTEGER := 1;\n  xp_threshold INTEGER := 100;\n  total_xp_required INTEGER := xp_threshold;\nBEGIN\n  WHILE xp_points >= total_xp_required LOOP\n    level := level + 1;\n    xp_threshold := ROUND(xp_threshold * 1.25);\n    total_xp_required := total_xp_required + xp_threshold;\n  END LOOP;\n  \n  RETURN level;\nEND;\n"
+  },
+  {
+    "function_name": "get_user_schools",
+    "function_definition": "\r\nBEGIN\r\n  RETURN ARRAY(\r\n    SELECT id FROM public.schools WHERE id = p_user_id\r\n    UNION\r\n    SELECT school_id FROM public.teachers WHERE id = p_user_id\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "get_all_teachers",
+    "function_definition": "\r\n  SELECT id, name FROM public.teachers;\r\n"
+  },
+  {
+    "function_name": "update_updated_at_column",
+    "function_definition": "\r\nBEGIN\r\n  NEW.updated_at = timezone('utc'::text, now());\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "set_updated_at",
+    "function_definition": "\r\nBEGIN\r\n  NEW.updated_at = timezone('utc'::text, now());\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_superadmin",
+    "function_definition": "\r\nBEGIN\r\n  RETURN (\r\n    EXISTS (\r\n      SELECT 1 FROM auth.users\r\n      WHERE id = auth.uid()\r\n      AND raw_user_meta_data->>'role' = 'superadmin'\r\n    )\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_school_admin",
+    "function_definition": "\r\nBEGIN\r\n  RETURN (\r\n    EXISTS (\r\n      SELECT 1 FROM auth.users\r\n      WHERE id = auth.uid()\r\n      AND raw_user_meta_data->>'role' = 'school'\r\n      AND id = school_id\r\n    )\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_teacher",
+    "function_definition": "\r\nBEGIN\r\n  RETURN (\r\n    EXISTS (\r\n      SELECT 1 FROM auth.users\r\n      WHERE id = auth.uid()\r\n      AND raw_user_meta_data->>'role' = 'teacher'\r\n      AND id = teacher_id\r\n    )\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_student",
+    "function_definition": "\r\nBEGIN\r\n  RETURN (\r\n    EXISTS (\r\n      SELECT 1 FROM auth.users\r\n      WHERE id = auth.uid()\r\n      AND raw_user_meta_data->>'role' = 'student'\r\n      AND id = student_id\r\n    )\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "handle_new_student",
+    "function_definition": "\r\nBEGIN\r\n  IF NEW.raw_user_meta_data->>'role' = 'student' THEN\r\n    INSERT INTO public.students (\r\n      id,\r\n      name,\r\n      email,\r\n      roll_number,\r\n      class,\r\n      section,\r\n      school_id\r\n    )\r\n    VALUES (\r\n      NEW.id,\r\n      COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', 'New Student'),\r\n      NEW.email,\r\n      NEW.raw_user_meta_data->>'roll_number',\r\n      NEW.raw_user_meta_data->>'class',\r\n      NEW.raw_user_meta_data->>'section',\r\n      (NEW.raw_user_meta_data->>'school_id')::uuid\r\n    );\r\n  END IF;\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_teacher_for_quiz",
+    "function_definition": "\r\nBEGIN\r\n  RETURN EXISTS (\r\n    SELECT 1 FROM public.quizzes q\r\n    WHERE q.id = quiz_id \r\n    AND q.teacher_id = auth.uid()\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_student_in_classroom",
+    "function_definition": "\r\nBEGIN\r\n  RETURN EXISTS (\r\n    SELECT 1 FROM public.students s\r\n    WHERE s.id = auth.uid()\r\n    AND s.classroom_id = classroom_id\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "handle_new_teacher",
+    "function_definition": "\r\nBEGIN\r\n  -- Update auth.users metadata to include role and school_id\r\n  UPDATE auth.users \r\n  SET raw_user_meta_data = jsonb_set(\r\n    raw_user_meta_data,\r\n    '{role}',\r\n    '\"teacher\"'\r\n  )\r\n  WHERE id = NEW.id;\r\n\r\n  -- Set JWT claims for the user\r\n  UPDATE auth.users \r\n  SET raw_app_meta_data = jsonb_set(\r\n    COALESCE(raw_app_meta_data, '{}'::jsonb),\r\n    '{role}',\r\n    '\"teacher\"'\r\n  )\r\n  WHERE id = NEW.id;\r\n\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "increment_notes_generated",
+    "function_definition": "\r\nBEGIN\r\n    INSERT INTO public.daily_stats (user_id, date, notes_generated)\r\n    VALUES (arg_user_id, arg_date, 1)\r\n    ON CONFLICT (user_id, date)\r\n    DO UPDATE SET notes_generated = daily_stats.notes_generated + 1;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "increment_flashcards_generated",
+    "function_definition": "\r\nBEGIN\r\n    INSERT INTO public.daily_stats (user_id, date, flashcards_generated)\r\n    VALUES (arg_user_id, arg_date, 1)\r\n    ON CONFLICT (user_id, date)\r\n    DO UPDATE SET flashcards_generated = daily_stats.flashcards_generated + 1;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "increment_quizzes_given",
+    "function_definition": "\r\nBEGIN\r\n    INSERT INTO public.daily_stats (user_id, date, quizzes_given)\r\n    VALUES (arg_user_id, arg_date, 1)\r\n    ON CONFLICT (user_id, date)\r\n    DO UPDATE SET quizzes_given = daily_stats.quizzes_given + 1;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "update_messages_updated_at",
+    "function_definition": "\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "is_teacher_for_classroom",
+    "function_definition": "\r\nBEGIN\r\n  RETURN EXISTS (\r\n    SELECT 1 FROM public.classrooms c\r\n    WHERE c.id = classroom_id\r\n    AND (\r\n      c.class_teacher_id = auth.uid() OR\r\n      auth.uid() = ANY(ARRAY(SELECT UNNEST(c.teachers::uuid[])))\r\n    )\r\n  );\r\nEND;\r\n"
+  },
+  {
+    "function_name": "handle_new_school",
+    "function_definition": "\r\nBEGIN\r\n  IF NEW.raw_user_meta_data->>'role' = 'school' THEN\r\n    INSERT INTO public.schools (\r\n      id,\r\n      name,\r\n      city,\r\n      state,\r\n      board,\r\n      principal_name,\r\n      contact_number\r\n    )\r\n    VALUES (\r\n      NEW.id,\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'schoolName', ''), 'New School'),\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'city', ''), NULL),\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'state', ''), NULL),\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'board', ''), 'CBSE'),\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'principalName', ''), NULL),\r\n      COALESCE(NULLIF(NEW.raw_user_meta_data->>'contactPhone', ''), NULL)\r\n    );\r\n  END IF;\r\n  RETURN NEW;\r\nEND;\r\n"
+  },
+  {
+    "function_name": "handle_new_user_signup",
+    "function_definition": "\nBEGIN\n  INSERT INTO public.profiles (id, full_name, email, is_guest, onboarding_complete)\n  VALUES (\n    NEW.id,\n    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'User'),\n    NEW.email,\n    false,\n    false\n  );\n  \n  -- Add first login achievement for all users\n  INSERT INTO public.user_achievements (user_id, achievement_id)\n  SELECT NEW.id, id FROM public.achievements WHERE title = 'First Login'\n  ON CONFLICT DO NOTHING;\n  \n  RETURN NEW;\nEND;\n"
+  }
+]
+
+7.all foreign key relationships
+[
+  {
+    "table_schema": "public",
+    "table_name": "user_achievements",
+    "column_name": "user_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "profiles",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "user_achievements",
+    "column_name": "achievement_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "achievements",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "streak_logs",
+    "column_name": "user_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "profiles",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quests",
+    "column_name": "next_quest_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "quests",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "user_quests",
+    "column_name": "quest_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "quests",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "syllabus_topics",
+    "column_name": "syllabus_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabi",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "notes",
+    "column_name": "topic_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabus_topics",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "notes",
+    "column_name": "syllabus_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabi",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "missed_streak_days",
+    "column_name": "user_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "profiles",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "flashcards",
+    "column_name": "topic_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabus_topics",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_questions",
+    "column_name": "topic_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabus_topics",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_attempts",
+    "column_name": "topic_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "syllabus_topics",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "teachers",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "students",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "classrooms",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "classrooms",
+    "column_name": "class_teacher_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "teachers",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "students",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quizzes",
+    "column_name": "teacher_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "teachers",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "materials",
+    "column_name": "teacher_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "teachers",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_scores",
+    "column_name": "quiz_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "quizzes",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_scores",
+    "column_name": "student_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "students",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "class_sessions",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "class_sessions",
+    "column_name": "teacher_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "teachers",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "transactions",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "storage_usage",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "announcements",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quizzes",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "materials",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "teachers",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "students",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "classrooms",
+    "column_name": "school_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "schools",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "submissions",
+    "column_name": "student_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "students",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "submissions",
+    "column_name": "quiz_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "quizzes",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "sessions",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "sessions",
+    "column_name": "teacher_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "teachers",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "student_xp",
+    "column_name": "student_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "students",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "student_xp",
+    "column_name": "classroom_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "classrooms",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "materials",
+    "column_name": "topic",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "topics",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_submissions",
+    "column_name": "quiz_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "quizzes",
+    "foreign_column_name": "id"
+  },
+  {
+    "table_schema": "public",
+    "table_name": "quiz_submissions",
+    "column_name": "student_id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "students",
+    "foreign_column_name": "id"
+  }
+]
+
+8.All indexes
+[
+  {
+    "tablename": "achievements",
+    "indexname": "achievements_pkey",
+    "indexdef": "CREATE UNIQUE INDEX achievements_pkey ON public.achievements USING btree (id)"
+  },
+  {
+    "tablename": "announcements",
+    "indexname": "announcements_pkey",
+    "indexdef": "CREATE UNIQUE INDEX announcements_pkey ON public.announcements USING btree (id)"
+  },
+  {
+    "tablename": "announcements",
+    "indexname": "idx_announcements_created_at",
+    "indexdef": "CREATE INDEX idx_announcements_created_at ON public.announcements USING btree (created_at)"
+  },
+  {
+    "tablename": "announcements",
+    "indexname": "idx_announcements_school_id",
+    "indexdef": "CREATE INDEX idx_announcements_school_id ON public.announcements USING btree (school_id)"
+  },
+  {
+    "tablename": "class_sessions",
+    "indexname": "class_sessions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX class_sessions_pkey ON public.class_sessions USING btree (id)"
+  },
+  {
+    "tablename": "class_sessions",
+    "indexname": "idx_class_sessions_classroom_id",
+    "indexdef": "CREATE INDEX idx_class_sessions_classroom_id ON public.class_sessions USING btree (classroom_id)"
+  },
+  {
+    "tablename": "class_sessions",
+    "indexname": "idx_class_sessions_teacher_id",
+    "indexdef": "CREATE INDEX idx_class_sessions_teacher_id ON public.class_sessions USING btree (teacher_id)"
+  },
+  {
+    "tablename": "classrooms",
+    "indexname": "classrooms_pkey",
+    "indexdef": "CREATE UNIQUE INDEX classrooms_pkey ON public.classrooms USING btree (id)"
+  },
+  {
+    "tablename": "classrooms",
+    "indexname": "idx_classrooms_class_teacher_id",
+    "indexdef": "CREATE INDEX idx_classrooms_class_teacher_id ON public.classrooms USING btree (class_teacher_id)"
+  },
+  {
+    "tablename": "classrooms",
+    "indexname": "idx_classrooms_school_id",
+    "indexdef": "CREATE INDEX idx_classrooms_school_id ON public.classrooms USING btree (school_id)"
+  },
+  {
+    "tablename": "daily_stats",
+    "indexname": "daily_stats_pkey",
+    "indexdef": "CREATE UNIQUE INDEX daily_stats_pkey ON public.daily_stats USING btree (id)"
+  },
+  {
+    "tablename": "daily_stats",
+    "indexname": "daily_stats_user_id_date_key",
+    "indexdef": "CREATE UNIQUE INDEX daily_stats_user_id_date_key ON public.daily_stats USING btree (user_id, date)"
+  },
+  {
+    "tablename": "demo_requests",
+    "indexname": "demo_requests_pkey",
+    "indexdef": "CREATE UNIQUE INDEX demo_requests_pkey ON public.demo_requests USING btree (id)"
+  },
+  {
+    "tablename": "flashcards",
+    "indexname": "flashcards_pkey",
+    "indexdef": "CREATE UNIQUE INDEX flashcards_pkey ON public.flashcards USING btree (id)"
+  },
+  {
+    "tablename": "flashcards",
+    "indexname": "idx_flashcards_sl_no",
+    "indexdef": "CREATE INDEX idx_flashcards_sl_no ON public.flashcards USING btree (topic_id, sl_no)"
+  },
+  {
+    "tablename": "flashcards",
+    "indexname": "idx_flashcards_topic_id",
+    "indexdef": "CREATE INDEX idx_flashcards_topic_id ON public.flashcards USING btree (topic_id)"
+  },
+  {
+    "tablename": "materials",
+    "indexname": "idx_materials_teacher_id",
+    "indexdef": "CREATE INDEX idx_materials_teacher_id ON public.materials USING btree (teacher_id)"
+  },
+  {
+    "tablename": "materials",
+    "indexname": "materials_pkey",
+    "indexdef": "CREATE UNIQUE INDEX materials_pkey ON public.materials USING btree (id)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "idx_messages_receiver_id",
+    "indexdef": "CREATE INDEX idx_messages_receiver_id ON public.messages USING btree (receiver_id)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "idx_messages_receiver_type",
+    "indexdef": "CREATE INDEX idx_messages_receiver_type ON public.messages USING btree (receiver_type)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "idx_messages_sender_id",
+    "indexdef": "CREATE INDEX idx_messages_sender_id ON public.messages USING btree (sender_id)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "idx_messages_sent_at",
+    "indexdef": "CREATE INDEX idx_messages_sent_at ON public.messages USING btree (sent_at DESC)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "messages_is_announcement_idx",
+    "indexdef": "CREATE INDEX messages_is_announcement_idx ON public.messages USING btree (is_announcement)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "messages_pkey",
+    "indexdef": "CREATE UNIQUE INDEX messages_pkey ON public.messages USING btree (id)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "messages_receiver_id_idx",
+    "indexdef": "CREATE INDEX messages_receiver_id_idx ON public.messages USING btree (receiver_id)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "messages_receiver_type_idx",
+    "indexdef": "CREATE INDEX messages_receiver_type_idx ON public.messages USING btree (receiver_type)"
+  },
+  {
+    "tablename": "messages",
+    "indexname": "messages_sender_id_idx",
+    "indexdef": "CREATE INDEX messages_sender_id_idx ON public.messages USING btree (sender_id)"
+  },
+  {
+    "tablename": "missed_streak_days",
+    "indexname": "missed_streak_days_pkey",
+    "indexdef": "CREATE UNIQUE INDEX missed_streak_days_pkey ON public.missed_streak_days USING btree (id)"
+  },
+  {
+    "tablename": "missed_streak_days",
+    "indexname": "missed_streak_days_user_id_missed_date_key",
+    "indexdef": "CREATE UNIQUE INDEX missed_streak_days_user_id_missed_date_key ON public.missed_streak_days USING btree (user_id, missed_date)"
+  },
+  {
+    "tablename": "notes",
+    "indexname": "notes_pkey",
+    "indexdef": "CREATE UNIQUE INDEX notes_pkey ON public.notes USING btree (id)"
+  },
+  {
+    "tablename": "notes",
+    "indexname": "notes_syllabus_id_idx",
+    "indexdef": "CREATE INDEX notes_syllabus_id_idx ON public.notes USING btree (syllabus_id)"
+  },
+  {
+    "tablename": "notes",
+    "indexname": "notes_topic_id_idx",
+    "indexdef": "CREATE INDEX notes_topic_id_idx ON public.notes USING btree (topic_id)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "idx_profiles_class",
+    "indexdef": "CREATE INDEX idx_profiles_class ON public.profiles USING btree (class)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "idx_profiles_level",
+    "indexdef": "CREATE INDEX idx_profiles_level ON public.profiles USING btree (level DESC)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "idx_profiles_streak",
+    "indexdef": "CREATE INDEX idx_profiles_streak ON public.profiles USING btree (streak DESC)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "idx_profiles_xp",
+    "indexdef": "CREATE INDEX idx_profiles_xp ON public.profiles USING btree (xp DESC)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "profiles_email_key",
+    "indexdef": "CREATE UNIQUE INDEX profiles_email_key ON public.profiles USING btree (email)"
+  },
+  {
+    "tablename": "profiles",
+    "indexname": "profiles_pkey",
+    "indexdef": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+  },
+  {
+    "tablename": "quests",
+    "indexname": "quests_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quests_pkey ON public.quests USING btree (id)"
+  },
+  {
+    "tablename": "quiz_attempts",
+    "indexname": "quiz_attempts_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quiz_attempts_pkey ON public.quiz_attempts USING btree (id)"
+  },
+  {
+    "tablename": "quiz_questions",
+    "indexname": "idx_quiz_questions_sl_no",
+    "indexdef": "CREATE INDEX idx_quiz_questions_sl_no ON public.quiz_questions USING btree (topic_id, sl_no)"
+  },
+  {
+    "tablename": "quiz_questions",
+    "indexname": "idx_quiz_questions_topic_id",
+    "indexdef": "CREATE INDEX idx_quiz_questions_topic_id ON public.quiz_questions USING btree (topic_id)"
+  },
+  {
+    "tablename": "quiz_questions",
+    "indexname": "quiz_questions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quiz_questions_pkey ON public.quiz_questions USING btree (id)"
+  },
+  {
+    "tablename": "quiz_scores",
+    "indexname": "idx_quiz_scores_quiz_id",
+    "indexdef": "CREATE INDEX idx_quiz_scores_quiz_id ON public.quiz_scores USING btree (quiz_id)"
+  },
+  {
+    "tablename": "quiz_scores",
+    "indexname": "idx_quiz_scores_student_id",
+    "indexdef": "CREATE INDEX idx_quiz_scores_student_id ON public.quiz_scores USING btree (student_id)"
+  },
+  {
+    "tablename": "quiz_scores",
+    "indexname": "quiz_scores_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quiz_scores_pkey ON public.quiz_scores USING btree (id)"
+  },
+  {
+    "tablename": "quiz_submissions",
+    "indexname": "idx_quiz_submissions_quiz_id",
+    "indexdef": "CREATE INDEX idx_quiz_submissions_quiz_id ON public.quiz_submissions USING btree (quiz_id)"
+  },
+  {
+    "tablename": "quiz_submissions",
+    "indexname": "idx_quiz_submissions_student_id",
+    "indexdef": "CREATE INDEX idx_quiz_submissions_student_id ON public.quiz_submissions USING btree (student_id)"
+  },
+  {
+    "tablename": "quiz_submissions",
+    "indexname": "quiz_submissions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quiz_submissions_pkey ON public.quiz_submissions USING btree (id)"
+  },
+  {
+    "tablename": "quizzes",
+    "indexname": "idx_quizzes_teacher_id",
+    "indexdef": "CREATE INDEX idx_quizzes_teacher_id ON public.quizzes USING btree (teacher_id)"
+  },
+  {
+    "tablename": "quizzes",
+    "indexname": "quizzes_pkey",
+    "indexdef": "CREATE UNIQUE INDEX quizzes_pkey ON public.quizzes USING btree (id)"
+  },
+  {
+    "tablename": "school_settings",
+    "indexname": "school_settings_pkey",
+    "indexdef": "CREATE UNIQUE INDEX school_settings_pkey ON public.school_settings USING btree (id)"
+  },
+  {
+    "tablename": "school_settings",
+    "indexname": "school_settings_school_id_unique",
+    "indexdef": "CREATE UNIQUE INDEX school_settings_school_id_unique ON public.school_settings USING btree (school_id)"
+  },
+  {
+    "tablename": "schools",
+    "indexname": "schools_pkey",
+    "indexdef": "CREATE UNIQUE INDEX schools_pkey ON public.schools USING btree (id)"
+  },
+  {
+    "tablename": "sessions",
+    "indexname": "sessions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX sessions_pkey ON public.sessions USING btree (id)"
+  },
+  {
+    "tablename": "settings",
+    "indexname": "idx_settings_key",
+    "indexdef": "CREATE UNIQUE INDEX idx_settings_key ON public.settings USING btree (key)"
+  },
+  {
+    "tablename": "settings",
+    "indexname": "settings_key_key",
+    "indexdef": "CREATE UNIQUE INDEX settings_key_key ON public.settings USING btree (key)"
+  },
+  {
+    "tablename": "settings",
+    "indexname": "settings_pkey",
+    "indexdef": "CREATE UNIQUE INDEX settings_pkey ON public.settings USING btree (id)"
+  },
+  {
+    "tablename": "storage_usage",
+    "indexname": "idx_storage_usage_school_id",
+    "indexdef": "CREATE INDEX idx_storage_usage_school_id ON public.storage_usage USING btree (school_id)"
+  },
+  {
+    "tablename": "storage_usage",
+    "indexname": "idx_storage_usage_timestamp",
+    "indexdef": "CREATE INDEX idx_storage_usage_timestamp ON public.storage_usage USING btree (\"timestamp\")"
+  },
+  {
+    "tablename": "storage_usage",
+    "indexname": "storage_usage_pkey",
+    "indexdef": "CREATE UNIQUE INDEX storage_usage_pkey ON public.storage_usage USING btree (id)"
+  },
+  {
+    "tablename": "streak_logs",
+    "indexname": "streak_logs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX streak_logs_pkey ON public.streak_logs USING btree (id)"
+  },
+  {
+    "tablename": "streak_logs",
+    "indexname": "streak_logs_user_id_login_date_key",
+    "indexdef": "CREATE UNIQUE INDEX streak_logs_user_id_login_date_key ON public.streak_logs USING btree (user_id, login_date)"
+  },
+  {
+    "tablename": "student_xp",
+    "indexname": "student_xp_pkey",
+    "indexdef": "CREATE UNIQUE INDEX student_xp_pkey ON public.student_xp USING btree (id)"
+  },
+  {
+    "tablename": "student_xp",
+    "indexname": "student_xp_student_id_classroom_id_key",
+    "indexdef": "CREATE UNIQUE INDEX student_xp_student_id_classroom_id_key ON public.student_xp USING btree (student_id, classroom_id)"
+  },
+  {
+    "tablename": "students",
+    "indexname": "idx_students_classroom_id",
+    "indexdef": "CREATE INDEX idx_students_classroom_id ON public.students USING btree (classroom_id)"
+  },
+  {
+    "tablename": "students",
+    "indexname": "idx_students_email",
+    "indexdef": "CREATE INDEX idx_students_email ON public.students USING btree (email)"
+  },
+  {
+    "tablename": "students",
+    "indexname": "idx_students_school_id",
+    "indexdef": "CREATE INDEX idx_students_school_id ON public.students USING btree (school_id)"
+  },
+  {
+    "tablename": "students",
+    "indexname": "students_email_key",
+    "indexdef": "CREATE UNIQUE INDEX students_email_key ON public.students USING btree (email)"
+  },
+  {
+    "tablename": "students",
+    "indexname": "students_pkey",
+    "indexdef": "CREATE UNIQUE INDEX students_pkey ON public.students USING btree (id)"
+  },
+  {
+    "tablename": "study_sessions",
+    "indexname": "study_sessions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX study_sessions_pkey ON public.study_sessions USING btree (id)"
+  },
+  {
+    "tablename": "submissions",
+    "indexname": "submissions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX submissions_pkey ON public.submissions USING btree (id)"
+  },
+  {
+    "tablename": "submissions",
+    "indexname": "submissions_student_id_quiz_id_key",
+    "indexdef": "CREATE UNIQUE INDEX submissions_student_id_quiz_id_key ON public.submissions USING btree (student_id, quiz_id)"
+  },
+  {
+    "tablename": "syllabi",
+    "indexname": "syllabi_pkey",
+    "indexdef": "CREATE UNIQUE INDEX syllabi_pkey ON public.syllabi USING btree (id)"
+  },
+  {
+    "tablename": "syllabi",
+    "indexname": "syllabi_user_id_idx",
+    "indexdef": "CREATE INDEX syllabi_user_id_idx ON public.syllabi USING btree (user_id)"
+  },
+  {
+    "tablename": "syllabus_topics",
+    "indexname": "syllabus_topics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX syllabus_topics_pkey ON public.syllabus_topics USING btree (id)"
+  },
+  {
+    "tablename": "syllabus_topics",
+    "indexname": "syllabus_topics_syllabus_id_idx",
+    "indexdef": "CREATE INDEX syllabus_topics_syllabus_id_idx ON public.syllabus_topics USING btree (syllabus_id)"
+  },
+  {
+    "tablename": "teachers",
+    "indexname": "idx_teachers_email",
+    "indexdef": "CREATE INDEX idx_teachers_email ON public.teachers USING btree (email)"
+  },
+  {
+    "tablename": "teachers",
+    "indexname": "idx_teachers_school_id",
+    "indexdef": "CREATE INDEX idx_teachers_school_id ON public.teachers USING btree (school_id)"
+  },
+  {
+    "tablename": "teachers",
+    "indexname": "teachers_email_active_unique",
+    "indexdef": "CREATE UNIQUE INDEX teachers_email_active_unique ON public.teachers USING btree (email) WHERE (active = true)"
+  },
+  {
+    "tablename": "teachers",
+    "indexname": "teachers_pkey",
+    "indexdef": "CREATE UNIQUE INDEX teachers_pkey ON public.teachers USING btree (id)"
+  },
+  {
+    "tablename": "topics",
+    "indexname": "topics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX topics_pkey ON public.topics USING btree (id)"
+  },
+  {
+    "tablename": "transactions",
+    "indexname": "idx_transactions_date",
+    "indexdef": "CREATE INDEX idx_transactions_date ON public.transactions USING btree (date)"
+  },
+  {
+    "tablename": "transactions",
+    "indexname": "idx_transactions_school_id",
+    "indexdef": "CREATE INDEX idx_transactions_school_id ON public.transactions USING btree (school_id)"
+  },
+  {
+    "tablename": "transactions",
+    "indexname": "transactions_pkey",
+    "indexdef": "CREATE UNIQUE INDEX transactions_pkey ON public.transactions USING btree (id)"
+  },
+  {
+    "tablename": "usage_stats",
+    "indexname": "idx_usage_stats_user_week",
+    "indexdef": "CREATE INDEX idx_usage_stats_user_week ON public.usage_stats USING btree (user_id, week, year)"
+  },
+  {
+    "tablename": "usage_stats",
+    "indexname": "usage_stats_pkey",
+    "indexdef": "CREATE UNIQUE INDEX usage_stats_pkey ON public.usage_stats USING btree (id)"
+  },
+  {
+    "tablename": "user_achievements",
+    "indexname": "idx_user_achievements_user_id",
+    "indexdef": "CREATE INDEX idx_user_achievements_user_id ON public.user_achievements USING btree (user_id)"
+  },
+  {
+    "tablename": "user_achievements",
+    "indexname": "user_achievements_pkey",
+    "indexdef": "CREATE UNIQUE INDEX user_achievements_pkey ON public.user_achievements USING btree (id)"
+  },
+  {
+    "tablename": "user_achievements",
+    "indexname": "user_achievements_user_id_achievement_id_key",
+    "indexdef": "CREATE UNIQUE INDEX user_achievements_user_id_achievement_id_key ON public.user_achievements USING btree (user_id, achievement_id)"
+  },
+  {
+    "tablename": "user_daily_generation_counts",
+    "indexname": "unique_user_date",
+    "indexdef": "CREATE UNIQUE INDEX unique_user_date ON public.user_daily_generation_counts USING btree (user_id, date)"
+  },
+  {
+    "tablename": "user_daily_generation_counts",
+    "indexname": "user_daily_generation_counts_pkey",
+    "indexdef": "CREATE UNIQUE INDEX user_daily_generation_counts_pkey ON public.user_daily_generation_counts USING btree (id)"
+  },
+  {
+    "tablename": "user_daily_generation_counts",
+    "indexname": "user_daily_generation_counts_user_id_date_key",
+    "indexdef": "CREATE UNIQUE INDEX user_daily_generation_counts_user_id_date_key ON public.user_daily_generation_counts USING btree (user_id, date)"
+  },
+  {
+    "tablename": "user_quests",
+    "indexname": "user_quests_pkey",
+    "indexdef": "CREATE UNIQUE INDEX user_quests_pkey ON public.user_quests USING btree (id)"
+  },
+  {
+    "tablename": "user_quests",
+    "indexname": "user_quests_user_id_quest_id_key",
+    "indexdef": "CREATE UNIQUE INDEX user_quests_user_id_quest_id_key ON public.user_quests USING btree (user_id, quest_id)"
+  }
+]
+
+9.All enum types
+Success. No rows returned
+
+extra:
+[
+  {
+    "student_count": 1,
+    "teacher_count": 1,
+    "school_count": 2
+  }
+]

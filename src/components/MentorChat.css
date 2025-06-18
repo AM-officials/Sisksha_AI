@@ -1,0 +1,8 @@
+.DialogClose, [class*='DialogClose'] {
+  display: none !important;
+}
+
+/* Only round the outer chat popup corners */
+.MentorChatDialogContent {
+  border-radius: 1rem !important;
+} 
