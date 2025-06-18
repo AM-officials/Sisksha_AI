@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, Suspense } from 'react';
+import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Float, Stars } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,34 @@ import * as THREE from 'three';
 
 // Extend Three.js elements for React Three Fiber
 extend({ Mesh: THREE.Mesh, SphereGeometry: THREE.SphereGeometry, BoxGeometry: THREE.BoxGeometry, CylinderGeometry: THREE.CylinderGeometry });
+
+// Error Boundary for 3D rendering
+interface ErrorBoundaryProps {
+  fallback: React.ReactNode;
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_error: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 // 3D Mascot Component
 const AnimatedMascot = () => {
@@ -115,27 +143,52 @@ const FloatingIcons = () => {
 
 // 3D Scene Component
 const Scene3D = () => {
+  const [canRender3D, setCanRender3D] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Check if WebGL is supported
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        setCanRender3D(false);
+      }
+    } catch (e) {
+      setCanRender3D(false);
+    }
+  }, []);
+
+  if (!canRender3D) {
+    return (
+      <div className="absolute inset-0 bg-gradient-to-br from-siksha-purple to-siksha-pink"></div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 w-full h-full">
-      <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-        
-        <Stars radius={300} depth={60} count={1000} factor={7} saturation={0} fade />
-        
-        <AnimatedMascot />
-        <FloatingIcons />
-        
-        <OrbitControls 
-          enableZoom={false} 
-          enablePan={false} 
-          autoRotate 
-          autoRotateSpeed={0.5}
-          minPolarAngle={Math.PI / 3}
-          maxPolarAngle={Math.PI / 1.5}
-        />
-      </Canvas>
+      <ErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-siksha-purple to-siksha-pink"></div>}>
+        <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+          <ambientLight intensity={0.6} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
+          <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+          
+          <Stars radius={300} depth={60} count={1000} factor={7} saturation={0} fade />
+          
+          <Suspense fallback={null}>
+            <AnimatedMascot />
+            <FloatingIcons />
+          </Suspense>
+          
+          <OrbitControls 
+            enableZoom={false} 
+            enablePan={false} 
+            autoRotate 
+            autoRotateSpeed={0.5}
+            minPolarAngle={Math.PI / 3}
+            maxPolarAngle={Math.PI / 1.5}
+          />
+        </Canvas>
+      </ErrorBoundary>
     </div>
   );
 };
@@ -164,9 +217,11 @@ const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-siksha-purple via-indigo-600 to-siksha-pink relative overflow-hidden overflow-x-hidden">
       {/* Background 3D Scene */}
-      <Suspense fallback={<div className="absolute inset-0 bg-gradient-to-br from-siksha-purple to-siksha-pink" />}>
-        <Scene3D />
-      </Suspense>
+      <ErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-siksha-purple to-siksha-pink"></div>}>
+        <Suspense fallback={<div className="absolute inset-0 bg-gradient-to-br from-siksha-purple to-siksha-pink"></div>}>
+          <Scene3D />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Content Overlay */}
       <div className="relative z-10 min-h-screen flex flex-col">
