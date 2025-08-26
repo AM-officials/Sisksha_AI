@@ -88,8 +88,8 @@ scripts/             Dev tooling (e.g., generate-types)
 ### Environment Variables (`.env`)
 Set (example names – confirm actual keys):
 ```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_public_anon_key
+VITE_SUPABASE_URL=(https://supabase.com/dashboard/project/jvcmfxtxxhyqsvymjtau)
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2Y21meHR4eGh5cXN2eW1qdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MDQwMjEsImV4cCI6MjA2MzQ4MDAyMX0.izfdELtFBW1X-x0KEnHzWqMh3WiGNXZVq-SC18hlHI0
 ``` 
 Additional keys for secure operations (service role) should never be exposed to the client bundle.
 
@@ -160,16 +160,7 @@ Contributions are welcome while the architecture is still evolving:
 - Mentor Chat multilingual responses may occasionally mix languages (model tuning pending).
 - 3D mascot performance on low-end mobile devices can fluctuate.
 - Accessibility audit incomplete (ARIA roles & keyboard navigation WIP).
-
----
-
-## 12. License
-Currently unlicensed (default copyright retained) OR MIT (choose & update). If using MIT:
-```
-MIT License – 2025 Siksha AI Contributors
-```
-Add a `LICENSE` file if formalizing.
-
+  
 ---
 
 ## 13. Acknowledgments
@@ -186,8 +177,7 @@ This platform is **under active development**. Features may be incomplete, unsta
 
 ## 15. Contact
 For collaboration or early feedback access:
-- Create an Issue or Discussion
-- (Optionally add email / contact channel here)
+- Email: anmolmishra2005b@gmail.com
 
 ---
 
