@@ -32,17 +32,18 @@ Siksha AI aims to make high-quality, personalized learning accessible to every I
 ## 3. UI Snapshots
 (Representative early-development screens – visuals & layout subject to refinement.)
 
+
 ### Landing / Role Entry
-![Landing Screen](./docs/images/welcome.png)
+![Landing Screen](docs/images/welcome.png)
 
 ### Parental Analytics
-![Parental Analytics](./docs/images/parent_analytics.png)
+![Parental Analytics](docs/images/parent_analytics.png)
 
 ### Student Dashboard (Home)
-![Student Dashboard](./docs/images/student_home.png)
+![Student Dashboard](docs/images/student_home.png)
 
 ### Mentor Chat (Multilingual)
-![Mentor Chat](./docs/images/mentor_chat.png)
+![Mentor Chat](docs/images/mentor_chat.png)
 
 > If images do not load, ensure you have placed the screenshots under `docs/images/` matching filenames above, or adjust paths.
 
