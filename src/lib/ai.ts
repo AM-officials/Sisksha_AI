@@ -3,7 +3,12 @@
 export const AI_API_KEY  = import.meta.env.VITE_AI_API_KEY  as string;
 export const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL as string;
 export const AI_MODEL    = import.meta.env.VITE_AI_MODEL    as string;
-export const AI_CHAT_URL = `${AI_BASE_URL}/chat/completions`;
+
+// In development, route through Vite's proxy (/api/ai → https://integrate.api.nvidia.com/v1)
+// to bypass CORS. In production, call the API directly.
+export const AI_CHAT_URL = import.meta.env.DEV
+  ? '/api/ai/chat/completions'
+  : `${AI_BASE_URL}/chat/completions`;
 
 /**
  * Thin wrapper around the NVIDIA / OpenAI-compatible chat endpoint.
