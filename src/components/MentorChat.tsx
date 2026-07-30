@@ -130,10 +130,12 @@ Praise the user for their achievements and progress. If progress is lacking, off
     setInput('');
     try {
       const systemPrompt = getSystemPrompt() || 'You are a helpful AI mentor.';
+      // Keep last 8 messages to cap context size and avoid rate limits
+      const recentMessages = newMessages.slice(-8);
       const aiMessage = await callAI({
         messages: [
           { role: 'system', content: systemPrompt },
-          ...newMessages.map(m => ({
+          ...recentMessages.map(m => ({
             role: (m.role === 'user' || m.role === 'assistant' ? m.role : 'user') as 'user' | 'assistant' | 'system',
             content: m.content,
           })),
@@ -143,7 +145,7 @@ Praise the user for their achievements and progress. If progress is lacking, off
       });
       setMessages([...newMessages, { role: 'assistant' as const, content: aiMessage || 'Sorry, I could not generate a response.' }]);
     } catch (e: any) {
-      setError('Could not reach the AI mentor. Please try again.');
+      setError('Could not reach the AI mentor. Please try again in a moment.');
     } finally {
       setLoading(false);
     }

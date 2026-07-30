@@ -17,7 +17,7 @@ import StreakService from '@/services/StreakService';
 import QuestService, { Quest } from '@/services/QuestService';
 import AchievementService from '@/services/AchievementService';
 import MentorChat from '../components/MentorChat';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Canvas } from '@react-three/fiber';
 import InteractiveMascot3D from '@/components/InteractiveMascot3D';
@@ -692,6 +692,7 @@ const Home: React.FC = () => {
       <Dialog open={mentorChatOpen} onOpenChange={setMentorChatOpen}>
         <DialogContent className="p-0 max-w-md w-full">
           <DialogTitle>Mentor Chat</DialogTitle>
+          <DialogDescription className="sr-only">AI-powered mentor chat to help with your learning progress</DialogDescription>
           <MentorChat user={user} onClose={() => setMentorChatOpen(false)} />
         </DialogContent>
       </Dialog>
