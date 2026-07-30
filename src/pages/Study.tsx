@@ -302,6 +302,7 @@ ${syllabusText}
   async function callLLMForNotes(topicTitle: string, chaptersRange: string): Promise<string> {
     const prompt = `Please generate clean, visually organized study notes for the topic provided. Ensure the notes are broken into clear sections and sub-sections with headings (like "Key Concepts," "Formulas," "Examples," "Definitions," etc.). Maintain proper paragraph spacing, and use bullet points or tables wherever appropriate to present information in a structured and eye-pleasing format. Each concept should be explained clearly in a short paragraph or concise bullet point, not merged into a wall of text. Use bold or italic styling to highlight key terms, and leave enough space between lines to make the notes easy to read and visually appealing. Avoid clustering too much information in a single block and ensure the output resembles well-organized revision material, not a dense transcript. Prioritize clarity, readability, and good formatting in markdown or plain text.\n\nTopic: ${topicTitle}.`;
     return callAI({
+      model: 'google/gemma-4-31b-it',
       messages: [{ role: 'system', content: prompt }],
       max_tokens: 2048,
       temperature: 0.5,
@@ -454,6 +455,7 @@ ${syllabusText}
   async function getDetailedSessionCount(topicTitle: string): Promise<number> {
     const prompt = `You are an expert academic planner. For the topic: ${topicTitle}, tell me in how many sessions (each under 1000 words) you can generate highly detailed and engaging notes. Respond with only a numeric value (e.g., 5 or 7). Do not include any explanation, text, or additional comments. Output must be a single number only.`;
     const content = await callAI({
+      model: 'google/gemma-4-31b-it',
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: prompt },
@@ -482,6 +484,7 @@ ${syllabusText}
         // 2. Prompt for each session
         const prompt = `You are now acting as an expert exam-board-certified tutor tasked with creating emergency, last-minute revision notes for the topic ${topic.topic_title}, specifically for session ${session} of ${sessionCount}. Your goal is to produce crystal-clear, concise, and high-yield notes that are perfect for quick exam revision and not for deep learning. Focus only on essential content that helps students score marks — such as important formulas, core concepts, key definitions, and must-know facts. Structure the notes using bullet points, clean tables, summary boxes, and sections that promote quick understanding.\n\nAdditionally, present the notes in a highly visually engaging format. Use HTML and CSS to style the output in a way that makes it attractive and easy to study. Apply bold and color-coded headings, highlight key takeaways using background boxes (like light yellow or blue), and include adequate spacing and padding to make the content breathable. Use emojis or visual icons to emphasize tips, alerts, and exam hacks (such as ⚠️ for warnings or 📌 for pinned concepts). Think of the end result as a stylish digital cheat sheet that a student would find both helpful and enjoyable to revise from, even under stress. Your final output should be a fully styled HTML document ready to render in a browser, with no code comments or extra explanations — only the styled, revision-ready content.`;
         const llmResponse = await callAI({
+          model: 'google/gemma-4-31b-it',
           messages: [{ role: 'system', content: prompt }],
           max_tokens: 2048,
           temperature: 0.5,
@@ -528,6 +531,7 @@ ${syllabusText}
   async function getExamSessionCount(topicTitle: string): Promise<number> {
     const prompt = `You are an expert in creating concise and high-retention exam preparation material. For the topic: ${topicTitle}, determine how many short and focused sessions are required to generate complete emergency revision notes that are ideal for last-minute exam preparation. Each session should be under 700 words. Return only the number of required sessions in numeric form (e.g., 2 or 4). Do not include any extra text, explanation, or symbols — only a number as the answer.`;
     const content = await callAI({
+      model: 'google/gemma-4-31b-it',
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: prompt },
@@ -552,6 +556,7 @@ ${syllabusText}
       for (let session = 1; session <= sessionCount; session++) {
         const prompt = `You are now acting as an exam board-approved expert for rapid revision. Generate ultra-focused, high-impact emergency notes for the topic: ${topic.topic_title}. This is session ${session} of ${sessionCount}. These notes should cover only the most essential concepts, key definitions, and exam-relevant points that students need to memorize quickly. Prioritize formulas, one-line answers, and crucial tips with high exam probability. Present the information in a structured format using bullet points, short paragraphs, tables, and summary boxes.\n\nUse HTML and CSS to design the content with clean spacing, appealing fonts, highlight colors for keywords, and visual callouts to separate important sections. Ensure the overall layout is visually engaging and easy on the eyes, like a modern, minimalist cheat sheet. Add subtle visual flair to increase readability and retention — such as boxed key terms, color-coded sections, or icon-marked tips — so students find the notes attractive, easy to scan, and effective for last-minute revision. Prioritize clarity, aesthetics, and high retention.`;
         const llmResponse = await callAI({
+          model: 'google/gemma-4-31b-it',
           messages: [{ role: 'system', content: prompt }],
           max_tokens: 2048,
           temperature: 0.5,

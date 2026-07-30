@@ -16,6 +16,7 @@ export const AI_CHAT_URL = import.meta.env.DEV
  * with exponential back-off.
  */
 export async function callAI(params: {
+  model?: string;
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
   max_tokens?: number;
   temperature?: number;
@@ -33,7 +34,7 @@ export async function callAI(params: {
         Authorization: `Bearer ${AI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: AI_MODEL,
+        model: params.model || AI_MODEL,
         ...params,
       }),
     });
