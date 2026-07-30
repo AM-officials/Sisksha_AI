@@ -21,6 +21,7 @@ import QuizGallery from '../components/QuizGallery';
 import QuizService, { QuizAttempt } from '@/services/QuizService';
 import { supabase } from '@/integrations/supabase/client';
 import { jsonrepair } from 'jsonrepair';
+import { callAI } from '@/lib/ai';
 
 const Study: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,49 +166,22 @@ const Study: React.FC = () => {
     }
   }, [topicHistoryOpen, user]);
 
-  // Add retry utility function
+  // Retry utility — retries up to maxRetries times with exponential back-off
   const retryWithFallback = async (apiCall: () => Promise<any>, maxRetries = 3) => {
     let lastError;
-    
-    // Try Groq API first
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await apiCall();
       } catch (error) {
         lastError = error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
       }
     }
-    
-    // If Groq fails, fallback to OpenAI
-    try {
-      const OPENAI_API_KEY = 'sk-dEvru90oQ1EaZ3jDJz2hWGdyb3FY3CXLu6bxIzbEE93Kad8m5qP0';
-      const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-      const response = await fetch(OPENAI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: lastError.messages || [],
-          max_tokens: 2048,
-          temperature: 0.5
-        })
-      });
-      
-      if (!response.ok) throw new Error('Both Groq and OpenAI APIs failed');
-      return await response.json();
-    } catch (error) {
-      throw new Error('All API attempts failed. Please try again later.');
-    }
+    throw new Error('All API attempts failed. Please try again later.');
   };
 
-  // Utility to call Groq LLM for topic group generation
+  // Call AI for topic group generation
   async function callLLMForTopics(syllabusText: string): Promise<{ heading: string, topics: { topic_number: number, topic_title: string, chapters_range: string }[] }> {
-    const GROQ_API_KEY = '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';
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
     const prompt = `You are an expert syllabus parser. Your ONLY job is to return a JSON object in the following format, and nothing else. Do NOT include any explanation, preamble, or extra text. If you understand, reply ONLY with the JSON object. Example:
 
 {
@@ -222,48 +196,28 @@ Now, given this syllabus text, return ONLY the JSON object:
 """
 ${syllabusText}
 """`;
-
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant that analyzes syllabi and returns ONLY valid JSON responses.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 1024,
-        temperature: 0.2
-      })
+    const content = await callAI({
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 2048,
+      temperature: 0.1,
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to analyze syllabus');
-    }
-
-    const data = await response.json();
-    const llmResponse = data.choices?.[0]?.message?.content || '';
-
     try {
-      // Try to parse as JSON
-      const parsed = JSON.parse(llmResponse.trim());
+      const repaired = jsonrepair(content);
+      const parsed = JSON.parse(repaired);
       if (!parsed.heading || !Array.isArray(parsed.topics)) {
         throw new Error('Invalid response structure');
       }
       parsed.topics = parsed.topics.map((topic: any, index: number) => ({
         topic_number: topic.topic_number || index + 1,
         topic_title: topic.topic_title || `Topic ${index + 1}`,
-        chapters_range: topic.chapters_range || ''
+        chapters_range: topic.chapters_range || '',
       }));
       return parsed;
     } catch (e) {
-      // Show a user-friendly error if parsing fails
-      throw new Error('Sorry, the AI could not parse your syllabus. Please try again, edit your input, or rephrase your syllabus for better results.');
+      throw new Error('Sorry, the AI could not parse your syllabus. Please try again or rephrase the syllabus text.');
     }
   }
+
 
   // Handler for creating a syllabus
   const handleAnalyzeSyllabus = async () => {
@@ -344,29 +298,14 @@ ${syllabusText}
     }
   };
 
-  // Utility to call Groq LLM for note generation
+  // Call AI for note generation
   async function callLLMForNotes(topicTitle: string, chaptersRange: string): Promise<string> {
-    const GROQ_API_KEY = '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';
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
     const prompt = `Please generate clean, visually organized study notes for the topic provided. Ensure the notes are broken into clear sections and sub-sections with headings (like "Key Concepts," "Formulas," "Examples," "Definitions," etc.). Maintain proper paragraph spacing, and use bullet points or tables wherever appropriate to present information in a structured and eye-pleasing format. Each concept should be explained clearly in a short paragraph or concise bullet point, not merged into a wall of text. Use bold or italic styling to highlight key terms, and leave enough space between lines to make the notes easy to read and visually appealing. Avoid clustering too much information in a single block and ensure the output resembles well-organized revision material, not a dense transcript. Prioritize clarity, readability, and good formatting in markdown or plain text.\n\nTopic: ${topicTitle}.`;
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [
-          { role: 'system', content: prompt }
-        ],
-        max_tokens: 2048,
-        temperature: 0.5
-      })
+    return callAI({
+      messages: [{ role: 'system', content: prompt }],
+      max_tokens: 2048,
+      temperature: 0.5,
     });
-    if (!response.ok) throw new Error('Failed to generate notes');
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || '';
   }
 
   // Utility to extract HTML and CSS from LLM response and combine for rendering
@@ -511,30 +450,17 @@ ${syllabusText}
     }
   };
 
-  // LLM prompt for session count
+  // AI prompt for session count (detailed notes)
   async function getDetailedSessionCount(topicTitle: string): Promise<number> {
-    const GROQ_API_KEY = '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';
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
     const prompt = `You are an expert academic planner. For the topic: ${topicTitle}, tell me in how many sessions (each under 1000 words) you can generate highly detailed and engaging notes. Respond with only a numeric value (e.g., 5 or 7). Do not include any explanation, text, or additional comments. Output must be a single number only.`;
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 10,
-        temperature: 0.1
-      })
+    const content = await callAI({
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 10,
+      temperature: 0.1,
     });
-    if (!response.ok) throw new Error('Failed to get session count');
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
     const num = parseInt(content.match(/\d+/)?.[0] || '1', 10);
     return Math.max(1, num);
   }
@@ -555,26 +481,11 @@ ${syllabusText}
       for (let session = 1; session <= sessionCount; session++) {
         // 2. Prompt for each session
         const prompt = `You are now acting as an expert exam-board-certified tutor tasked with creating emergency, last-minute revision notes for the topic ${topic.topic_title}, specifically for session ${session} of ${sessionCount}. Your goal is to produce crystal-clear, concise, and high-yield notes that are perfect for quick exam revision and not for deep learning. Focus only on essential content that helps students score marks — such as important formulas, core concepts, key definitions, and must-know facts. Structure the notes using bullet points, clean tables, summary boxes, and sections that promote quick understanding.\n\nAdditionally, present the notes in a highly visually engaging format. Use HTML and CSS to style the output in a way that makes it attractive and easy to study. Apply bold and color-coded headings, highlight key takeaways using background boxes (like light yellow or blue), and include adequate spacing and padding to make the content breathable. Use emojis or visual icons to emphasize tips, alerts, and exam hacks (such as ⚠️ for warnings or 📌 for pinned concepts). Think of the end result as a stylish digital cheat sheet that a student would find both helpful and enjoyable to revise from, even under stress. Your final output should be a fully styled HTML document ready to render in a browser, with no code comments or extra explanations — only the styled, revision-ready content.`;
-        const GROQ_API_KEY = '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';
-        const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'llama3-70b-8192',
-            messages: [
-              { role: 'system', content: prompt }
-            ],
-            max_tokens: 2048,
-            temperature: 0.5
-          })
+        const llmResponse = await callAI({
+          messages: [{ role: 'system', content: prompt }],
+          max_tokens: 2048,
+          temperature: 0.5,
         });
-        if (!response.ok) throw new Error('Failed to generate session notes');
-        const data = await response.json();
-        const llmResponse = data.choices?.[0]?.message?.content || '';
         allSessionsHtml.push(llmResponse);
         setDetailedProgress(session / sessionCount);
         // Save each session as a note (optional: for progress tracking)
@@ -613,30 +524,17 @@ ${syllabusText}
     }
   };
 
-  // Exam Mode: LLM prompt for session count
+  // AI prompt for session count (exam notes)
   async function getExamSessionCount(topicTitle: string): Promise<number> {
-    const GROQ_API_KEY = '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';
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
     const prompt = `You are an expert in creating concise and high-retention exam preparation material. For the topic: ${topicTitle}, determine how many short and focused sessions are required to generate complete emergency revision notes that are ideal for last-minute exam preparation. Each session should be under 700 words. Return only the number of required sessions in numeric form (e.g., 2 or 4). Do not include any extra text, explanation, or symbols — only a number as the answer.`;
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 10,
-        temperature: 0.1
-      })
+    const content = await callAI({
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 10,
+      temperature: 0.1,
     });
-    if (!response.ok) throw new Error('Failed to get session count');
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
     const num = parseInt(content.match(/\d+/)?.[0] || '1', 10);
     return Math.max(1, num);
   }
@@ -653,26 +551,11 @@ ${syllabusText}
       let allSessionsHtml: string[] = [];
       for (let session = 1; session <= sessionCount; session++) {
         const prompt = `You are now acting as an exam board-approved expert for rapid revision. Generate ultra-focused, high-impact emergency notes for the topic: ${topic.topic_title}. This is session ${session} of ${sessionCount}. These notes should cover only the most essential concepts, key definitions, and exam-relevant points that students need to memorize quickly. Prioritize formulas, one-line answers, and crucial tips with high exam probability. Present the information in a structured format using bullet points, short paragraphs, tables, and summary boxes.\n\nUse HTML and CSS to design the content with clean spacing, appealing fonts, highlight colors for keywords, and visual callouts to separate important sections. Ensure the overall layout is visually engaging and easy on the eyes, like a modern, minimalist cheat sheet. Add subtle visual flair to increase readability and retention — such as boxed key terms, color-coded sections, or icon-marked tips — so students find the notes attractive, easy to scan, and effective for last-minute revision. Prioritize clarity, aesthetics, and high retention.`;
-        const GROQ_API_KEY = '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';
-        const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-        const response = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROQ_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'llama3-70b-8192',
-            messages: [
-              { role: 'system', content: prompt }
-            ],
-            max_tokens: 2048,
-            temperature: 0.5
-          })
+        const llmResponse = await callAI({
+          messages: [{ role: 'system', content: prompt }],
+          max_tokens: 2048,
+          temperature: 0.5,
         });
-        if (!response.ok) throw new Error('Failed to generate session notes');
-        const data = await response.json();
-        const llmResponse = data.choices?.[0]?.message?.content || '';
         allSessionsHtml.push(llmResponse);
         setExamProgress(session / sessionCount);
         await NotesService.insertNote({
@@ -778,27 +661,11 @@ ${syllabusText}
       }
       if (!topicContent) throw new Error('No content found for this topic.');
       // 2. Call LLM
-      const GROQ_API_KEY = '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';
-      const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-      const prompt = FLASHCARD_PROMPT(topicContent);
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'llama3-70b-8192',
-          messages: [
-            { role: 'system', content: prompt }
-          ],
-          max_tokens: 2048,
-          temperature: 0.3
-        })
+      const llmContent = await callAI({
+        messages: [{ role: 'system', content: prompt }],
+        max_tokens: 2048,
+        temperature: 0.3,
       });
-      if (!response.ok) throw new Error('Failed to generate flashcards');
-      const data = await response.json();
-      const llmContent = data.choices?.[0]?.message?.content || '';
       // 3. Parse LLM response
       const parsed = parseFlashcardsFromLLM(llmContent);
       if (!parsed.length) throw new Error('No flashcards found in LLM response.');
@@ -948,25 +815,14 @@ ${topicContent}
       
       while (retryCount < maxRetries) {
         try {
-          const data = await retryWithFallback(() => 
-            fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer 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`
-              },
-              body: JSON.stringify({
-                model: 'llama3-70b-8192',
-                messages,
-                max_tokens: 2048,
-                temperature: 0.3,
-                top_p: 0.95,
-                frequency_penalty: 0.5,
-                presence_penalty: 0.5
-              })
-            }).then(res => {
-              if (!res.ok) throw { messages };
-              return res.json();
+          const data = await retryWithFallback(() =>
+            callAI({
+              messages,
+              max_tokens: 2048,
+              temperature: 0.3,
+              top_p: 0.95,
+              frequency_penalty: 0.5,
+              presence_penalty: 0.5,
             })
           );
 

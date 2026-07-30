@@ -8,12 +8,8 @@ import TimeTrackingService from '@/services/TimeTrackingService';
 import AchievementService from '@/services/AchievementService';
 import QuestService from '@/services/QuestService';
 import LeaderboardService from '@/services/LeaderboardService';
+import { callAI } from '@/lib/ai';
 import './MentorChat.css';
-
-const GROQ_API_KEY = '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';
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL_DEEPSEEK = 'deepseek-llm-67b-chat'; // For English/Hindi
-const MODEL_LLAMA3 = 'llama3-70b-8192'; // Use for all languages
 
 interface MentorChatProps {
   user: any;
@@ -121,7 +117,7 @@ ${languageInstruction}
 Praise the user for their achievements and progress. If progress is lacking, offer motivational or constructive advice. Be positive, supportive, but also firm and honest. Always reference their real stats in your responses. Keep your answers short and actionable.`;
   };
 
-  // Send message to Groq
+  // Send message to AI
   const sendMessage = async () => {
     if (!input.trim() || loading || !userStats) return;
     setLoading(true);
@@ -134,39 +130,20 @@ Praise the user for their achievements and progress. If progress is lacking, off
     setInput('');
     try {
       const systemPrompt = getSystemPrompt() || 'You are a helpful AI mentor.';
-      const model = MODEL_LLAMA3; // Always use llama3-70b-8192
-      const body = {
-        model,
+      const aiMessage = await callAI({
         messages: [
           { role: 'system', content: systemPrompt },
           ...newMessages.map(m => ({
-            role: m.role === 'user' || m.role === 'assistant' ? m.role : 'user',
+            role: (m.role === 'user' || m.role === 'assistant' ? m.role : 'user') as 'user' | 'assistant' | 'system',
             content: m.content,
           })),
         ],
-        max_tokens: 300,
+        max_tokens: 512,
         temperature: 0.8,
-      };
-      // Log the request body for debugging
-      console.log('Groq request body:', body);
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify(body),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Groq API error:', errorText);
-        throw new Error('groq-fail');
-      }
-      const data = await response.json();
-      const aiMessage = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-      setMessages([...newMessages, { role: 'assistant' as const, content: aiMessage }]);
+      setMessages([...newMessages, { role: 'assistant' as const, content: aiMessage || 'Sorry, I could not generate a response.' }]);
     } catch (e: any) {
-      setError('Your mentor seems to be taking a short nap!');
+      setError('Could not reach the AI mentor. Please try again.');
     } finally {
       setLoading(false);
     }

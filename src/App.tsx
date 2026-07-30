@@ -29,11 +29,11 @@ import ClassroomMode from './pages/ClassroomMode';
 import RoleMismatchError from './pages/RoleMismatchError';
 import ResetPassword from './pages/ResetPassword';
 
-// Create QueryClient inside the component to ensure React context is available
+// Create QueryClient once — outside the component so it's a singleton and never recreated
+const queryClient = new QueryClient();
+
+// Create a new QueryClient instance inside the component
 const App = () => {
-  // Create a new QueryClient instance inside the component
-  const queryClient = new QueryClient();
-  
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
@@ -200,11 +200,11 @@ const AppContent = () => {
       {/* Shared routes for all authenticated users (including guests) */}
       <Route path="/study" element={<SharedRoute><Study /></SharedRoute>} />
       <Route path="/settings" element={<SharedRoute><Settings /></SharedRoute>} />
-      <Route path="/parent-analytics" element={<ParentAnalytics />} />
+      <Route path="/parent-analytics" element={<ProtectedRoute><ParentAnalytics /></ProtectedRoute>} />
       <Route path="/schools" element={<Schools />} />
       <Route path="/schools_dashboard" element={<SchoolRoute><SchoolsDashboard /></SchoolRoute>} />
       <Route path="/teachers_dashboard" element={<TeacherRoute><TeachersDashboard /></TeacherRoute>} />
-      <Route path="/classroom_mode" element={<ClassroomMode />} />
+      <Route path="/classroom_mode" element={<ProtectedRoute><ClassroomMode /></ProtectedRoute>} />
       {/* Super Admin routes */}
       <Route path="/super_admin_login" element={<SuperAdminLoginRoute><SuperAdminLogin /></SuperAdminLoginRoute>} />
       <Route path="/super_admin" element={<SuperAdminRoute><SuperAdmin /></SuperAdminRoute>} />

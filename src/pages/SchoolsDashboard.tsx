@@ -2915,7 +2915,7 @@ const AIMascot = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const API_KEY = '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';
+  const API_KEY = import.meta.env.VITE_AI_API_KEY;
 
   const toggleChat = () => setChatOpen(!chatOpen);
 
@@ -2929,16 +2929,9 @@ const AIMascot = () => {
     setInput('');
     setIsLoading(true);
 
-    try {
-      // Call the Groq API with the provided key
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'llama3-8b-8192',
+      const aiResponse = await (async () => {
+        const { callAI: _callAI } = await import('@/lib/ai');
+        return _callAI({
           messages: [
             {
               role: 'system',
@@ -2956,26 +2949,15 @@ const AIMascot = () => {
               Keep your responses concise and professional.`
             },
             ...newMessages.map(msg => ({
-              role: msg.role,
+              role: msg.role as 'user' | 'assistant' | 'system',
               content: msg.content
             }))
           ],
           temperature: 0.7,
-          max_tokens: 800
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API error:', errorData);
-        throw new Error(`Failed to get AI response: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('AI response:', result);
-      const aiResponse = result.choices?.[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
-      
-      setMessages([...newMessages, { role: 'assistant', content: aiResponse }]);
+          max_tokens: 800,
+        });
+      })();
+      setMessages([...newMessages, { role: 'assistant', content: aiResponse || 'Sorry, I couldn\'t generate a response.' }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       

@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (never commit these)
+.env
+.env.local
+.env.*.local
+
+# Internal reference docs
+supabase_reference.md
+supabase-config.txt
