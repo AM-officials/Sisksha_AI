@@ -110,7 +110,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return session?.user?.id ?? null;
         });
         setSupabaseUserRole(prev => {
-          const newRole = session?.user?.user_metadata?.role ?? null;
+          let newRole = session?.user?.user_metadata?.role ?? null;
+          
+          // HUGE HACK: Intercept role if we are currently signing up to prevent race condition 
+          // where the DB trigger temporarily sets the role to 'teacher'.
+          if (window.__pendingSignupRole) {
+            newRole = window.__pendingSignupRole;
+          }
+          
           if (prev === newRole) return prev;
           console.log('[AuthContext] setSupabaseUserRole:', newRole);
           return newRole;
@@ -178,15 +185,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // New effect: fetch profile only when supabaseUserId is set
+  // New effect: fetch profile when supabaseUserId is set, and update role if it changes
   useEffect(() => {
     if (supabaseUserId) {
-      fetchUserProfile(supabaseUserId);
+      if (user && user.id === supabaseUserId && supabaseUserRole && user.role !== supabaseUserRole) {
+        console.log('[AuthContext] Role updated dynamically to', supabaseUserRole);
+        setUser(prev => prev ? { ...prev, role: supabaseUserRole as any } : null);
+      } else if (!user || user.id !== supabaseUserId) {
+        fetchUserProfile(supabaseUserId);
+      }
     }
     if (!supabaseUserId) {
       lastFetchedUserId.current = null;
     }
-  }, [supabaseUserId]);
+  }, [supabaseUserId, supabaseUserRole, user]);
 
   // Remove the routing effect since we'll handle navigation in the components
   
@@ -395,6 +407,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (email: string, password: string, name: string, role?: 'school' | 'teacher' | 'student', metadata?: any) => {
     try {
       setIsLoading(true);
+      
+      // Set the pending role to intercept in onAuthStateChange
+      (window as any).__pendingSignupRole = role || 'student';
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -416,13 +432,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             data: { role: intendedRole }
           });
           data.user.user_metadata.role = intendedRole;
+          
+          // Force React state update to avoid race condition with onAuthStateChange
+          setSupabaseUserRole(intendedRole);
+          setUser(prev => prev ? { ...prev, role: intendedRole as any } : null);
         }
 
         console.log('[AuthContext] User signed up:', data.user);
         console.log('[AuthContext] User role:', data.user.user_metadata?.role);
+        
+        // Clear the pending role
+        (window as any).__pendingSignupRole = null;
       }
       
       if (error) {
+        // Clear the pending role
+        (window as any).__pendingSignupRole = null;
+        
         let errorMsg = error.message;
         if (errorMsg.toLowerCase().includes('email') && error.status === 500) {
           errorMsg = "Supabase email limit reached. Please go to your Supabase Dashboard -> Authentication -> Providers -> Email -> Turn OFF 'Confirm email'.";
