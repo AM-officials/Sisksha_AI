@@ -414,17 +414,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (error) {
+        let errorMsg = error.message;
+        if (errorMsg.toLowerCase().includes('email') && error.status === 500) {
+          errorMsg = "Supabase email limit reached. Please go to your Supabase Dashboard -> Authentication -> Providers -> Email -> Turn OFF 'Confirm email'.";
+        }
         toast({
           title: "Sign Up Failed",
-          description: error.message,
+          description: errorMsg,
           variant: "destructive",
         });
-        return { error };
+        return { error: new Error(errorMsg) };
+      }
+
+      // Check if user was created but email confirmation is pending
+      if (data?.user && data.user.identities && data.user.identities.length === 0) {
+        toast({
+          title: "Sign Up Failed",
+          description: "This email is already registered or requires confirmation.",
+          variant: "destructive",
+        });
+        return { error: new Error("Email exists or needs confirmation") };
       }
 
       toast({
         title: "Sign Up Successful",
-        description: "Please check your email to verify your account.",
+        description: "Your account has been created successfully!",
       });
       
       return { error: null };
