@@ -2929,42 +2929,41 @@ const AIMascot = () => {
     setInput('');
     setIsLoading(true);
 
-      const aiResponse = await (async () => {
-        const { callAI: _callAI } = await import('@/lib/ai');
-        return _callAI({
-          messages: [
-            {
-              role: 'system',
-              content: `You are the personal assistant of a school principal helping in analyzing the school condition and analytics. 
-              
-              Your name is Siksha AI Assistant.
-              
-              You have access to the following school data:
-              - Teacher performance metrics: Engagement rates, materials created, assignments graded
-              - Student metrics: Attendance rates, quiz scores, assignment completion rates
-              - Classroom statistics: Average quiz scores, participation rates, time spent learning
-              - Overall school analytics: Growth trends, comparative performance against other schools
-              
-              Provide insightful analysis and recommendations based on this data. Be specific and give concrete, actionable advice.
-              Keep your responses concise and professional.`
-            },
-            ...newMessages.map(msg => ({
-              role: msg.role as 'user' | 'assistant' | 'system',
-              content: msg.content
-            }))
-          ],
-          temperature: 0.7,
-          max_tokens: 800,
-        });
-      })();
-      setMessages([...newMessages, { role: 'assistant', content: aiResponse || 'Sorry, I couldn\'t generate a response.' }]);
+    try {
+      const { callAI: _callAI } = await import('@/lib/ai');
+      const aiResponse = await _callAI({
+        messages: [
+          {
+            role: 'system',
+            content: `You are the personal assistant of a school principal helping in analyzing the school condition and analytics.
+
+Your name is Siksha AI Assistant.
+
+You have access to the following school data:
+- Teacher performance metrics: Engagement rates, materials created, assignments graded
+- Student metrics: Attendance rates, quiz scores, assignment completion rates
+- Classroom statistics: Average quiz scores, participation rates, time spent learning
+- Overall school analytics: Growth trends, comparative performance against other schools
+
+Provide insightful analysis and recommendations based on this data. Be specific and give concrete, actionable advice.
+Keep your responses concise and professional.`
+          },
+          ...newMessages.map(msg => ({
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content,
+          }))
+        ],
+        temperature: 0.7,
+        max_tokens: 800,
+      });
+      setMessages([...newMessages, { role: 'assistant', content: aiResponse || "Sorry, I couldn't generate a response." }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
-      
-      // Use intelligent fallback responses
-      let response;
+
+      // Fallback responses when AI is unavailable
+      let response: string;
       const userQ = input.toLowerCase();
-      
+
       if (userQ.includes('student') && userQ.includes('performance')) {
         response = 'Based on the analytics, student performance has improved by 12% in the last quarter. Math and Science show the strongest improvements.';
       } else if (userQ.includes('teacher') && (userQ.includes('activity') || userQ.includes('engagement'))) {
@@ -2974,21 +2973,20 @@ const AIMascot = () => {
       } else if (userQ.includes('improve') || userQ.includes('suggestion')) {
         response = 'To improve overall engagement, consider increasing interactive content. Classes with more quizzes show 23% higher completion rates.';
       } else if (userQ.includes('analytics') || userQ.includes('data') || userQ.includes('statistics')) {
-        response = 'Your school analytics show positive trends: 92% attendance rate, 86% assignment completion, and 78% average quiz scores. Teacher engagement is up 15% from last month.';
+        response = 'Your school analytics show positive trends: 92% attendance rate, 86% assignment completion, and 78% average quiz scores.';
       } else if (userQ.includes('compare') || userQ.includes('vs') || userQ.includes('versus')) {
-        response = 'Comparing classrooms, 8A has the highest quiz scores (avg 88%), while 7B has the best attendance (96%). 6C needs improvement with only 72% assignment completion.';
+        response = 'Comparing classrooms, 8A has the highest quiz scores (avg 88%), while 7B has the best attendance (96%).';
       } else {
         const fallbackResponses = [
           'Based on the school analytics, teacher engagement has increased by 15% this month.',
           'Your school attendance metrics show 92% average attendance, which is above the district average.',
           'Class 7B shows exceptional performance in recent assessments, with an 87% completion rate for assignments.',
           'I notice your teachers have created 23 new learning materials this week, which is 40% higher than last week.',
-          'Student performance analysis shows strengths in Mathematics and Science, with room for improvement in Language Arts.'
+          'Student performance analysis shows strengths in Mathematics and Science, with room for improvement in Language Arts.',
         ];
-        
         response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
       }
-      
+
       setMessages([...newMessages, { role: 'assistant', content: response }]);
     } finally {
       setIsLoading(false);
