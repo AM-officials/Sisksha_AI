@@ -13,8 +13,31 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+    // Stop the client from retrying indefinitely when offline / project is paused
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      return fetch(url, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeout));
+    },
+  },
 });
+
+// Utility: check if Supabase is reachable
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/health`, { signal: controller.signal });
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
 
 // Add function to calculate level based on XP
 export const calculateLevel = (xp: number): number => {

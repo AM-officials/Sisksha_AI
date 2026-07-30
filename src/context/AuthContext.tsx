@@ -7,6 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import TimeTrackingService from '@/services/TimeTrackingService';
 import StreakService from '@/services/StreakService';
 
+// Max ms to wait for Supabase before giving up and unblocking the UI
+const AUTH_INIT_TIMEOUT_MS = 12000;
+
 export type UserType = {
   id: string;
   name: string;
@@ -34,6 +37,7 @@ type AuthContextType = {
   user: UserType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  supabaseReachable: boolean;
   supabaseUser: User | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<{error: any | null}>;
@@ -48,6 +52,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: true,
+  supabaseReachable: true,
   supabaseUser: null,
   session: null,
   login: async () => ({ error: null }),
@@ -71,6 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [supabaseUserRole, setSupabaseUserRole] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [supabaseReachable, setSupabaseReachable] = useState(true);
+  const authInitialized = useRef(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const lastFetchedUserId = useRef<string | null>(null);
@@ -78,6 +85,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initialize auth state
   useEffect(() => {
+    // Hard timeout: if Supabase hasn't responded in AUTH_INIT_TIMEOUT_MS, unblock the UI
+    const timeoutId = setTimeout(() => {
+      if (!authInitialized.current) {
+        console.warn('[AuthContext] Supabase init timed out – project may be paused.');
+        setSupabaseReachable(false);
+        setIsLoading(false);
+        authInitialized.current = true;
+      }
+    }, AUTH_INIT_TIMEOUT_MS);
+
     // First, set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -101,8 +118,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!session?.user) {
           console.log('[AuthContext] setUser: null (no session user)');
           setUser(null);
+          if (!authInitialized.current) {
+            authInitialized.current = true;
+            clearTimeout(timeoutId);
+          }
           setIsLoading(false);
           return;
+        }
+        // Mark as initialized on first successful event
+        if (!authInitialized.current) {
+          authInitialized.current = true;
+          clearTimeout(timeoutId);
         }
         // Update streak on signin
         if (event === 'SIGNED_IN') {
@@ -141,9 +167,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!session?.user) {
         setIsLoading(false);
       }
+    }).catch((err) => {
+      console.error('[AuthContext] getSession error:', err);
+      // Don't set isLoading false here — the timeout will handle it
     });
 
     return () => {
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -521,6 +551,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user, 
         isAuthenticated: !!user, 
         isLoading,
+        supabaseReachable,
         supabaseUser: session?.user ?? null,
         session,
         login, 

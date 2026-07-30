@@ -15,7 +15,7 @@ import { supabase } from '../integrations/supabase/client';
 const Auth: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, signup, isAuthenticated, user } = useAuth();
+  const { login, signup, isAuthenticated, user, supabaseReachable } = useAuth();
   const { toast } = useToast();
   
   const [loginEmail, setLoginEmail] = useState('');
@@ -141,6 +141,23 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-b from-white to-siksha-purple/10">
+      {/* Supabase offline banner */}
+      {!supabaseReachable && (
+        <div className="w-full max-w-md mb-4 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-800 shadow">
+          <p className="font-semibold mb-1">⚠️ Backend Unavailable</p>
+          <p>
+            The Supabase project appears to be <strong>paused or unreachable</strong>. Login and signup will not work until it is restored.
+          </p>
+          <a
+            href="https://supabase.com/dashboard"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-block underline font-medium"
+          >
+            → Go to Supabase Dashboard to unpause your project
+          </a>
+        </div>
+      )}
       <div className="w-full max-w-md mx-auto space-y-6 mb-8">
         <div className="flex flex-col items-center text-center mb-8">
           <Mascot size="lg" expression="happy" />
