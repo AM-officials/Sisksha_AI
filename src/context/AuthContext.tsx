@@ -409,6 +409,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (data?.user) {
+        // Fix for rogue handle_new_teacher database trigger hijacking all signups
+        const intendedRole = role || 'student';
+        if (data.user.user_metadata?.role !== intendedRole) {
+          await supabase.auth.updateUser({
+            data: { role: intendedRole }
+          });
+          data.user.user_metadata.role = intendedRole;
+        }
+
         console.log('[AuthContext] User signed up:', data.user);
         console.log('[AuthContext] User role:', data.user.user_metadata?.role);
       }
