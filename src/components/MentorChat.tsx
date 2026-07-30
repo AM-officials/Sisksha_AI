@@ -130,12 +130,21 @@ Praise the user for their achievements and progress. If progress is lacking, off
     setInput('');
     try {
       const systemPrompt = getSystemPrompt() || 'You are a helpful AI mentor.';
-      // Keep last 8 messages to cap context size and avoid rate limits
-      const recentMessages = newMessages.slice(-8);
+
+      // Cap to last 10 messages, then strip any leading assistant messages.
+      // DeepSeek (and most LLMs) require the conversation to start with a
+      // 'user' turn after the system prompt. The initial greeting is an
+      // 'assistant' message injected by the UI — it must not be first in
+      // the API payload or the request will fail.
+      let apiMessages = newMessages.slice(-10);
+      while (apiMessages.length > 0 && apiMessages[0].role === 'assistant') {
+        apiMessages = apiMessages.slice(1);
+      }
+
       const aiMessage = await callAI({
         messages: [
           { role: 'system', content: systemPrompt },
-          ...recentMessages.map(m => ({
+          ...apiMessages.map(m => ({
             role: (m.role === 'user' || m.role === 'assistant' ? m.role : 'user') as 'user' | 'assistant' | 'system',
             content: m.content,
           })),
@@ -145,7 +154,9 @@ Praise the user for their achievements and progress. If progress is lacking, off
       });
       setMessages([...newMessages, { role: 'assistant' as const, content: aiMessage || 'Sorry, I could not generate a response.' }]);
     } catch (e: any) {
-      setError('Could not reach the AI mentor. Please try again in a moment.');
+      // Show the real error so it's easier to diagnose future issues
+      const msg = e?.message || 'Unknown error';
+      setError(`AI error: ${msg}`);
     } finally {
       setLoading(false);
     }
