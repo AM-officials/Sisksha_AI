@@ -4,11 +4,10 @@ export const AI_API_KEY  = import.meta.env.VITE_AI_API_KEY  as string;
 export const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL as string;
 export const AI_MODEL    = import.meta.env.VITE_AI_MODEL    as string;
 
-// In development, route through Vite's proxy (/api/ai → https://integrate.api.nvidia.com/v1)
-// to bypass CORS. In production, call the API directly.
-export const AI_CHAT_URL = import.meta.env.DEV
-  ? '/api/ai/chat/completions'
-  : `${AI_BASE_URL}/chat/completions`;
+// In both development and production, route through our /api/ai/chat/completions endpoint.
+// In development: Vite proxy intercepts this and forwards to NVIDIA.
+// In production: Vercel Serverless Function intercepts this and adds the API key securely.
+export const AI_CHAT_URL = '/api/ai/chat/completions';
 
 /**
  * Thin wrapper around the NVIDIA / OpenAI-compatible chat endpoint.
@@ -27,12 +26,18 @@ export async function callAI(params: {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // In dev, we might have the key on the client. In prod, the Vercel function injects it.
+    if (AI_API_KEY) {
+      headers['Authorization'] = `Bearer ${AI_API_KEY}`;
+    }
+
     const response = await fetch(AI_CHAT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${AI_API_KEY}`,
-      },
+      headers,
       body: JSON.stringify({
         model: params.model || AI_MODEL,
         ...params,
